@@ -3,16 +3,15 @@ package com.ezeeinfo.hospitalmanagementservices.service;
 import java.sql.SQLException;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-
+import com.ezeeinfo.hospitalmanagementservices.dto.AuthDTO;
 import com.ezeeinfo.hospitalmanagementservices.dto.PrescriptionItemDTO;
 
 public interface PrescriptionItemService {
 
-	PrescriptionItemDTO save(PrescriptionItemDTO prescriptionItemDTO, HttpServletRequest request) throws SQLException;
+	PrescriptionItemDTO save(PrescriptionItemDTO prescriptionItemDTO, AuthDTO authDTO) throws SQLException;
 
-	PrescriptionItemDTO getByCode(String code);
+	PrescriptionItemDTO getByCode(String code, AuthDTO authDTO);
 
-	List<PrescriptionItemDTO> getAll(HttpServletRequest request);
+	List<PrescriptionItemDTO> getAll(AuthDTO authDTO);
 
 }

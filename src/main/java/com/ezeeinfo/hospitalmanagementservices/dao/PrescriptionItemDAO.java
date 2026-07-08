@@ -83,7 +83,7 @@ public class PrescriptionItemDAO {
 	public List<PrescriptionItemDTO> getAll(Integer namespaceId) {
 		LOGGER.info(" GET-ALL - prescription lookup process for list");
 		List<PrescriptionItemDTO> prescriptionItemDTOList = new ArrayList<PrescriptionItemDTO>();
-		String query = "select p.id, p.code, p.appointment_id, p.medicine_id, p.notes, p.quantity, p.active_flag from prescription_item p inner join appointments a on p.appointment_id = a.id where a.namespace_id =? and p.active_flag <2";
+		String query = "select p.id, p.code, p.appointment_id, p.medicine_id, p.notes, p.quantity, p.active_flag from prescription_item p inner join appointment a on p.appointment_id = a.id where a.namespace_id =? and p.active_flag <2";
 		try (Connection connection = DbUtill.getConnection(); PreparedStatement preparedStatement = connection.prepareStatement(query);) {
 			preparedStatement.setInt(1, namespaceId);
 			try (ResultSet resultSet = preparedStatement.executeQuery();) {

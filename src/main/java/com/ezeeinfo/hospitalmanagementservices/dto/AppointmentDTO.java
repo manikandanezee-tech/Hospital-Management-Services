@@ -9,7 +9,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class AppointmentDTO extends BaseDTO {
+public class AppointmentDTO extends BaseDTO<AppointmentDTO> {
 
 	private PatientDTO patientDTO;
 	private DoctorDTO doctorDTO;

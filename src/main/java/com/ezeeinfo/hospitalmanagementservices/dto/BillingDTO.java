@@ -10,7 +10,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class BillingDTO extends BaseDTO {
+public class BillingDTO extends BaseDTO<BillingDTO> {
 
 	private NamespaceDTO namespaceDTO;
 	private BigDecimal totalAmount;

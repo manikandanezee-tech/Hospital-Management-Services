@@ -11,6 +11,7 @@ import com.ezeeinfo.hospitalmanagementservices.dto.NamespaceDTO;
 import com.ezeeinfo.hospitalmanagementservices.dto.PatientDTO;
 
 public class AppointmentMapper {
+	
 	public static AppointmentDTO toDTO(AppointmentIO appointmentIO, NamespaceDTO namespaceDTO, DoctorDTO doctorDTO, PatientDTO patientDTO) {
 
 		AppointmentDTO appointmentDTO = new AppointmentDTO();

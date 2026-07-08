@@ -5,7 +5,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class DepartmentDTO extends BaseDTO {
+public class DepartmentDTO extends BaseDTO<DepartmentDTO> {
 
 	private NamespaceDTO namespaceDTO;
 }

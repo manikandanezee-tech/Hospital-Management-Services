@@ -3,8 +3,6 @@ package com.ezeeinfo.hospitalmanagementservices.service.impl;
 import java.sql.SQLException;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,8 +35,7 @@ public class DoctorServiceImpl implements DoctorService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DoctorServiceImpl.class);
 
 	@Override
-	public DoctorDTO save(DoctorDTO doctorDTO, HttpServletRequest request) throws SQLException {
-		AuthDTO authDTO = (AuthDTO)request.getAttribute("authDTO");
+	public DoctorDTO save(DoctorDTO doctorDTO, AuthDTO authDTO) throws SQLException {
 		String role = authDTO.getUserDTO().getRole().getCode();
 		String namespaceCode = authDTO.getUserDTO().getNamespaceDTO().getCode();
 
@@ -51,8 +48,7 @@ public class DoctorServiceImpl implements DoctorService {
 			throw new ServiceException("Invalid Email Format", HttpStatus.BAD_REQUEST);
 		}
 		System.out.println(doctorDTO.getUserDTO().getRole().getCode());
-		if ((role.equals("ADM")) && (namespaceCode.equals(doctorDTO.getNamespaceDTO().getCode()) 
-				&& (namespaceCode.equals(doctorDTO.getDepartmentDTO().getNamespaceDTO().getCode()) && (doctorDTO.getUserDTO().getRole().getCode().equals("DOCT"))))) {
+		if ((role.equals("ADM")) && (namespaceCode.equals(doctorDTO.getNamespaceDTO().getCode()) && (namespaceCode.equals(doctorDTO.getDepartmentDTO().getNamespaceDTO().getCode()) && (doctorDTO.getUserDTO().getRole().getCode().equals("DOCT"))))) {
 
 			UserDTO userDTO = userDAO.getByCode(doctorDTO.getUserDTO().getCode());
 
@@ -65,28 +61,29 @@ public class DoctorServiceImpl implements DoctorService {
 			int departmentId = departmentDTO.getId();
 			LOGGER.info("SAVE - Doctor validation success");
 			DoctorDTO doctorDTO2 = doctorDAO.save(doctorDTO, usersId, namespaceId, departmentId);
-			LOGGER.info("SAVE - doctor data insert/update successfully");
+			LOGGER.info("SAVE - doctor data saved successfully");
 			return doctorDTO2;
-		}
+		} 
 		throw new ServiceException("Access Denied update doctor", HttpStatus.UNAUTHORIZED);
 	}
 
 	@Override
-	public DoctorDTO getByCode(String code) {
-		LOGGER.info("GET-BY-CODE - fetching doctor by code: {}",code);
+	public DoctorDTO getByCode(String code, AuthDTO authDTO) {
+		LOGGER.info("GET-BY-CODE - fetching doctor by code: {}", code);
 		DoctorDTO doctorDTO = doctorDAO.getByCode(code);
-
-		LOGGER.info("GET-BY-CODE - doctor retrived successfully");
-		return doctorDTO;
+		if (authDTO.getUserDTO().getNamespaceDTO().getCode().equals(doctorDTO.getNamespaceDTO().getCode())) {
+			LOGGER.info("GET-BY-CODE - doctor retrived successfully");
+			return doctorDTO;
+		}
+		throw new ServiceException("Access Denied to get Doctor", HttpStatus.UNAUTHORIZED);
 
 	}
 
 	@Override
-	public List<DoctorDTO> getAll(HttpServletRequest request) throws SQLException {
-		AuthDTO authDTO = (AuthDTO)request.getAttribute("authDTO");
-		NamespaceDTO namespaceDTO = namespacecCache.getByCode(authDTO.getUserDTO().getNamespaceDTO().getCode());
+	public List<DoctorDTO> getAll(AuthDTO authDTO) throws SQLException {
+		int namespaceId = authDTO.getUserDTO().getNamespaceDTO().getId();
 		LOGGER.info("GET-ALL - fetching Doctor list");
-		List<DoctorDTO> doctorDTOList = doctorDAO.getAll(namespaceDTO.getId());
+		List<DoctorDTO> doctorDTOList = doctorDAO.getAll(namespaceId);
 		LOGGER.info("GET-ALL - retrived Doctor list successfully");
 		return doctorDTOList;
 	}

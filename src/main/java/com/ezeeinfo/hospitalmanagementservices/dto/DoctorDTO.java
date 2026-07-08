@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class DoctorDTO extends BaseDTO {
+public class DoctorDTO extends BaseDTO<DoctorDTO> {
 
 	private UserDTO userDTO;
 	private DepartmentDTO departmentDTO;

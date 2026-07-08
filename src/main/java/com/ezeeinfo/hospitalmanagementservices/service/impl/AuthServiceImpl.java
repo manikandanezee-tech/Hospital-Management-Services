@@ -1,6 +1,7 @@
 package com.ezeeinfo.hospitalmanagementservices.service.impl;
 
 import java.sql.SQLException;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,11 +11,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.ezeeinfo.hospitalmanagementservices.dao.UserDAO;
+import com.ezeeinfo.hospitalmanagementservices.dto.AuthDTO;
 import com.ezeeinfo.hospitalmanagementservices.dto.LoginDTO;
-import com.ezeeinfo.hospitalmanagementservices.dto.UserDTO;
 import com.ezeeinfo.hospitalmanagementservices.exception.ServiceException;
 import com.ezeeinfo.hospitalmanagementservices.service.AuthService;
-import com.ezeeinfo.hospitalmanagementservices.util.JwtUtill;
+
+import net.sf.ehcache.Cache;
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.Element;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -22,22 +26,39 @@ public class AuthServiceImpl implements AuthService {
 	private UserDAO userDAO;
 	@Autowired
 	private PasswordEncoder passwordEncoder;
-	
+	@Autowired
+	private CacheManager cacheManager;
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(AuthServiceImpl.class);
 
 	@Override
 	public String login(LoginDTO loginDTO) throws SQLException {
 		LOGGER.info("LOGIN -  login request forward to dao");
-		UserDTO userDTO = userDAO.login(loginDTO.getUserName());
+		AuthDTO authDTO = userDAO.login(loginDTO.getUserName());
 
-		if (userDTO.getUserName().equals(loginDTO.getUserName())) {
-			if (passwordEncoder.matches(loginDTO.getPassword(), userDTO.getToken())) {
+		if (authDTO.getUserDTO().getUserName().equals(loginDTO.getUserName())) {
+			if (passwordEncoder.matches(loginDTO.getPassword(), authDTO.getUserDTO().getToken())) {
+
 				LOGGER.info("LOGIN -  successfully validate the login details");
-				return JwtUtill.generateToken(userDTO);
+				String authToken = UUID.randomUUID().toString();
+
+				Cache cache = cacheManager.getCache("userCache");
+				cache.put(new Element(authToken, authDTO));
+
+				return authToken;
 			}
 
 		}
 
-		throw new ServiceException("invalid credential", HttpStatus.BAD_REQUEST);
+		throw new ServiceException("Invalid credential", HttpStatus.BAD_REQUEST);
+	}
+
+	@Override
+	public String logout(String authToken) {
+		Cache cache = cacheManager.getCache("userCache");
+		if (cache.remove(authToken)) {
+			return "Log out success....";
+		}
+		throw new ServiceException("Logout Failed", HttpStatus.BAD_REQUEST);
 	}
 }

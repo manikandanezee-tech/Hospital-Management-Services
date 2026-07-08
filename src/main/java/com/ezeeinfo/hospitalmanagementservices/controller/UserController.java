@@ -5,8 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,31 +13,33 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import com.ezeeinfo.hospitalmanagementservices.controller.io.UserResponseIO;
 import com.ezeeinfo.hospitalmanagementservices.controller.io.UserIO;
+import com.ezeeinfo.hospitalmanagementservices.dto.AuthDTO;
 import com.ezeeinfo.hospitalmanagementservices.dto.NamespaceDTO;
 import com.ezeeinfo.hospitalmanagementservices.dto.UserDTO;
 import com.ezeeinfo.hospitalmanagementservices.mapper.UserMapper;
 import com.ezeeinfo.hospitalmanagementservices.service.NamespaceService;
-import com.ezeeinfo.hospitalmanagementservices.service.UserDTOService;
-
+import com.ezeeinfo.hospitalmanagementservices.service.UserService;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/{authToken}/user")
 public class UserController {
 	@Autowired
-	private UserDTOService userService;
+	private UserService userService;
 	@Autowired
 	private NamespaceService namespaceService;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
 
 	@RequestMapping(method = RequestMethod.POST)
-	public UserResponseIO save(@RequestBody UserIO userIO, HttpServletRequest request) throws SQLException {
+	public UserResponseIO save(@PathVariable String authToken, @RequestBody UserIO userIO) throws SQLException {
 
-		NamespaceDTO namespaceDTO = namespaceService.getByCode(userIO.getNamespaceIO().getCode());
-
+		AuthDTO authDTO = userService.getAuthDTO(authToken);
+		
+		NamespaceDTO namespaceDTO = namespaceService.getByCode(authDTO, userIO.getNamespaceIO().getCode());
+		
 		UserDTO userDTO = UserMapper.toDTO(userIO, namespaceDTO);
 		LOGGER.info("SAVE - Request to save the user");
-		UserDTO userDTO2 = userService.save(userDTO, request);
+		UserDTO userDTO2 = userService.save(userDTO, authDTO);
 
 		UserResponseIO userResponseIO = UserMapper.toIO(userDTO2);
 		LOGGER.info("SAVE - User save successfully");
@@ -47,20 +47,22 @@ public class UserController {
 
 	}
 
-	@RequestMapping(value = "/{code}", method = RequestMethod.GET)
-	public UserResponseIO getByCode(@PathVariable String code) throws SQLException {
-		LOGGER.info("GET-BY-CODE - Request to get user by code : {}",code);
-		UserDTO userDTO = userService.getByCode(code);
+	@RequestMapping(value = "{code}", method = RequestMethod.GET)
+	public UserResponseIO getByCode(@PathVariable String authToken, @PathVariable String code) throws SQLException {
+		LOGGER.info("GET-BY-CODE - Request to get user by code : {}", code);
+		AuthDTO authDTO = userService.getAuthDTO(authToken);
+		UserDTO userDTO = userService.getByCode(code, authDTO);
 
 		UserResponseIO userResponseIO = UserMapper.toIO(userDTO);
-		LOGGER.info("GET-BY-CODE - User successfully received using code : {}",code);
+		LOGGER.info("GET-BY-CODE - User successfully received using code : {}", code);
 		return userResponseIO;
 	}
 
-	@RequestMapping(value = "/list", method = RequestMethod.GET)
-	public List<UserResponseIO> getAll(HttpServletRequest request) {
+	@RequestMapping(method = RequestMethod.GET)
+	public List<UserResponseIO> getAll(@PathVariable String authToken) throws SQLException {
+		AuthDTO authDTO = userService.getAuthDTO(authToken);
 		LOGGER.info("GET-ALL - Request to get UserList");
-		List<UserDTO> userDTOlList = userService.getAll(request);
+		List<UserDTO> userDTOlList = userService.getAll(authDTO);
 
 		List<UserResponseIO> userResponseIOList = userDTOlList.stream().map(DTO -> {
 

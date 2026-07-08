@@ -4,8 +4,6 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,12 +29,11 @@ public class BillingServiceImpl implements BillingService {
 	private ConsultationDAO consultationDAO;
 	@Autowired
 	private PrescriptionItemDAO prescriptionItemDAO;
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(BillingServiceImpl.class);
 
 	@Override
-	public BillingDTO save(BillingDTO billingDTO, HttpServletRequest request) throws SQLException {
-		AuthDTO authDTO = (AuthDTO) request.getAttribute("authDTO");
+	public BillingDTO save(BillingDTO billingDTO, AuthDTO authDTO) throws SQLException {
 		String role = authDTO.getUserDTO().getRole().getCode();
 		String namespaceCode = authDTO.getUserDTO().getNamespaceDTO().getCode();
 
@@ -85,18 +82,22 @@ public class BillingServiceImpl implements BillingService {
 				LOGGER.info("SAVE - successfully validation for insertion");
 				billingDTO1 = billingDAO.save(billingDTO);
 			}
-			LOGGER.info("SAVE - billing details insert/updated successfully");
+			LOGGER.info("SAVE - billing details saved successfully");
 			return billingDTO1;
 		}
 		throw new ServiceException("Access Denied for Billing", HttpStatus.UNAUTHORIZED);
 	}
 
 	@Override
-	public BillingDTO getByCode(String code) {
-		LOGGER.info("GET-BY-CODE - fetching the billing by code : {}",code);
+	public BillingDTO getByCode(String code, AuthDTO authDTO) {
+		LOGGER.info("GET-BY-CODE - fetching the billing by code : {}", code);
 		BillingDTO billingDTO = billingDAO.getByCode(code);
-		LOGGER.info("GET-BY-CODE - Retrive the billing successfully ");
-		return billingDTO;
+
+		if (authDTO.getUserDTO().getNamespaceDTO().getCode().equals(billingDTO.getNamespaceDTO().getCode())) {
+			LOGGER.info("GET-BY-CODE - Retrive the billing successfully ");
+			return billingDTO;
+		}
+		throw new ServiceException("Access Denied to get Billing Details", HttpStatus.UNAUTHORIZED);
 	}
 
 }

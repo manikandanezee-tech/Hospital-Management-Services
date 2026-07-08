@@ -5,7 +5,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class PatientDTO extends BaseDTO {
+public class PatientDTO extends BaseDTO<PatientDTO> {
 
 	private NamespaceDTO namespaceDTO;
 	private String mobile;

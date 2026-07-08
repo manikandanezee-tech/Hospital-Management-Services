@@ -3,7 +3,7 @@ package com.ezeeinfo.hospitalmanagementservices.dto;
 import lombok.Data;
 
 @Data
-public class BaseDTO{
+public class BaseDTO<T>{
 
 
 	private Integer id;

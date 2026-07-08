@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class MedicineDTO extends BaseDTO{
+public class MedicineDTO extends BaseDTO<MedicineDTO>{
 	 
 	private NamespaceDTO namespaceDTO;
 	private BigDecimal price;

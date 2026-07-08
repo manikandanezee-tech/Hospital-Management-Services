@@ -5,7 +5,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class PrescriptionItemDTO extends BaseDTO{
+public class PrescriptionItemDTO extends BaseDTO<PrescriptionItemDTO>{
 	
 	private AppointmentDTO appointmentDTO;
 	private MedicineDTO medicineDTO;

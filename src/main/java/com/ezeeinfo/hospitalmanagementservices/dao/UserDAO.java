@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 
 import com.ezeeinfo.hospitalmanagementservices.dao.UserDAO;
+import com.ezeeinfo.hospitalmanagementservices.dto.AuthDTO;
 import com.ezeeinfo.hospitalmanagementservices.dto.NamespaceDTO;
 import com.ezeeinfo.hospitalmanagementservices.dto.UserDTO;
 import com.ezeeinfo.hospitalmanagementservices.dto.enumeration.UserRoleEM;
@@ -26,7 +27,7 @@ import com.ezeeinfo.hospitalmanagementservices.util.DbUtill;
 public class UserDAO {
 	@Autowired
 	private NamespaceDAO namespaceDAO;
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserDAO.class);
 
 	public UserDTO save(UserDTO userDTO) throws SQLException {
@@ -39,7 +40,7 @@ public class UserDAO {
 			callableStatement.setString(3, userDTO.getToken());
 			callableStatement.setInt(4, userDTO.getRole().getValue());
 
-			callableStatement.setInt(5,userDTO.getNamespaceDTO().getId());
+			callableStatement.setInt(5, userDTO.getNamespaceDTO().getId());
 			callableStatement.setInt(6, userDTO.getActiveFlag());
 			callableStatement.setInt(7, userDTO.getUpdatedBy().getId());
 			callableStatement.registerOutParameter(1, Types.VARCHAR);
@@ -59,7 +60,7 @@ public class UserDAO {
 	}
 
 	public UserDTO getByCode(String code) throws SQLException {
-		LOGGER.info(" GET-BY-CODE - User lookup process by code : {}",code);
+		LOGGER.info(" GET-BY-CODE - User lookup process by code : {}", code);
 		String query = "select id, code, user_name, namespace_id, role, active_flag from user where code =? and active_flag < 2";
 
 		try (Connection connection = DbUtill.getConnection(); PreparedStatement preparedStatement = connection.prepareStatement(query);) {
@@ -73,8 +74,8 @@ public class UserDAO {
 					userDTO.setRole(UserRoleEM.getUserRoleEM(resultSet.getInt("role")));
 					userDTO.setActiveFlag(resultSet.getInt("active_flag"));
 					userDTO.setNamespaceDTO(namespaceDAO.getById(resultSet.getInt("namespace_id")));
-						return userDTO;
-				
+					return userDTO;
+
 				}
 			}
 		}
@@ -102,9 +103,8 @@ public class UserDAO {
 					userDTO.setNamespaceDTO(namespaceDTO);
 					userDTO.setRole(UserRoleEM.getUserRoleEM(resultSet.getInt("role")));
 					userDTO.setActiveFlag(resultSet.getInt("active_flag"));
-			
-						list.add(userDTO);
-					
+
+					list.add(userDTO);
 
 				}
 			}
@@ -116,7 +116,7 @@ public class UserDAO {
 		return list;
 	}
 
-	public UserDTO login(String userName) {
+	public AuthDTO login(String userName) {
 		LOGGER.info(" LOGIN - User lookup for login");
 		String query = "select id, code, user_name, token, role, namespace_id from user "
 
@@ -125,18 +125,18 @@ public class UserDAO {
 		try (Connection connection = DbUtill.getConnection(); PreparedStatement preparedStatement = connection.prepareStatement(query);) {
 			preparedStatement.setString(1, userName);
 			try (ResultSet resultSet = preparedStatement.executeQuery();) {
-				
+
 				if (resultSet.next()) {
-					UserDTO userDTO = new UserDTO();
+					AuthDTO authDTO = new AuthDTO();
+					UserDTO userDTO = new UserDTO(); 
 					userDTO.setId(resultSet.getInt("id"));
 					userDTO.setCode(resultSet.getString("code"));
 					userDTO.setUserName(resultSet.getString("user_name"));
 					userDTO.setToken(resultSet.getString("token"));
 					userDTO.setRole(UserRoleEM.getUserRoleEM(resultSet.getInt("role")));
 					userDTO.setNamespaceDTO(namespaceDAO.getById(resultSet.getInt("namespace_id")));
-				
-						return userDTO;
-					
+					authDTO.setUserDTO(userDTO);
+					return authDTO;
 
 				}
 
@@ -151,7 +151,7 @@ public class UserDAO {
 	}
 
 	public UserDTO getById(int id) throws SQLException {
-		LOGGER.info(" GET-BY-ID - User lookup process on ID : {}",id);
+		LOGGER.info(" GET-BY-ID - User lookup process on ID : {}", id);
 
 		String query = "select id, code, user_name, namespace_id, role, active_flag from user where id =? and active_flag <2";
 		UserDTO userDTO = new UserDTO();

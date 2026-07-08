@@ -4,6 +4,7 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.LocalDateTime;
@@ -31,9 +32,9 @@ public class AppointmentDAO {
 	private DoctorDAO doctorDAO;
 	@Autowired
 	private PatientDAO patientDAO;
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(AppointmentDAO.class);
-	
+
 	public AppointmentDTO save(AppointmentDTO appointmentDTO) {
 		LOGGER.info(" SAVE - Appointment insert/update on process ");
 
@@ -168,6 +169,27 @@ public class AppointmentDAO {
 			throw new ServiceException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		throw new ServiceException("Appointment Not Found", HttpStatus.NOT_FOUND);
+	}
+
+	public AppointmentDTO doctorsTotalAppointments(AppointmentDTO appointmentDTO) throws SQLException {
+
+		String query = "select id from appointment where doctor_id = ? " + "and appointment_datetime < ? and status = 1 and active_flag =1 limit 1";
+		try (Connection connection = DbUtill.getConnection(); PreparedStatement preparedStatement = connection.prepareStatement(query);) {
+			preparedStatement.setInt(1, appointmentDTO.getDoctorDTO().getId());
+			preparedStatement.setTimestamp(2, Timestamp.valueOf(appointmentDTO.getAppointmentDateTime()));
+
+			try (ResultSet resultSet = preparedStatement.executeQuery();) {
+				if (resultSet.next()) {
+					AppointmentDTO appointmentDTO2 = new AppointmentDTO();
+					appointmentDTO2.setId(resultSet.getInt("id"));
+					return appointmentDTO2;
+				}
+			}
+		}
+		catch (Exception e) {
+			throw new ServiceException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return null;
 	}
 
 }

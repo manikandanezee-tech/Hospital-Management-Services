@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Types;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +24,7 @@ import com.ezeeinfo.hospitalmanagementservices.util.DbUtill;
 public class PaymentDAO {
 	@Autowired
 	private BillingDAO billingDAO;
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(PaymentDAO.class);
 
 	public PaymentDTO save(PaymentDTO paymentDTO) {
@@ -50,11 +51,12 @@ public class PaymentDAO {
 			throw new ServiceException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		paymentDTO.setCode(code);
+		paymentDTO.setPaymentDatetime(LocalDateTime.now());
 		return paymentDTO;
 	}
 
 	public PaymentDTO getByCode(String code) {
-		LOGGER.info(" GET-BY-CODE - Payment lookup process by code : {}",code);
+		LOGGER.info(" GET-BY-CODE - Payment lookup process by code : {}", code);
 		String query = "select id, code, billing_id, amount, payment_mode, payment_datetime, transaction_ref_no, active_flag from payment where code =? and active_flag<2";
 		try (Connection connection = DbUtill.getConnection(); PreparedStatement preparedStatement = connection.prepareStatement(query);) {
 			preparedStatement.setString(1, code);
@@ -78,35 +80,35 @@ public class PaymentDAO {
 		catch (Exception e) {
 			throw new ServiceException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		throw new ServiceException("Invalid paymentCode",HttpStatus.NOT_FOUND);
+		throw new ServiceException("Invalid paymentCode", HttpStatus.NOT_FOUND);
 	}
 
 	public List<PaymentDTO> getAll(int namespaceId) {
 		LOGGER.info(" GET-ALL - Payment lookup process for list");
-	List<PaymentDTO> paymentDTOList=new ArrayList<>();
-			String query = "select p.id, p.code, p.billing_id, p.amount, p.payment_mode, p.payment_datetime, p.transaction_ref_no, p.active_flag from payment p inner join billing b on p.billing_id = b.id where b.namespace_id =? and p.active_flag<2";
-			try (Connection connection = DbUtill.getConnection(); PreparedStatement preparedStatement = connection.prepareStatement(query);) {
-				preparedStatement.setInt(1, namespaceId);
-				try (ResultSet resultSet = preparedStatement.executeQuery();) {
-					if (resultSet.next()) {
-						PaymentDTO paymentDTO = new PaymentDTO();
-						paymentDTO.setId(resultSet.getInt("id"));
-						paymentDTO.setCode(resultSet.getString("code"));
-						paymentDTO.setBillingDTO(billingDAO.getById(resultSet.getInt("billing_id")));
-						paymentDTO.setAmount(resultSet.getBigDecimal("amount"));
-						paymentDTO.setPaymentMode(PaymentModeEM.getByValue(resultSet.getInt("payment_mode")));
-						paymentDTO.setPaymentDatetime(resultSet.getTimestamp("payment_datetime").toLocalDateTime());
-						paymentDTO.setTransactionRefNumber(resultSet.getString("transaction_ref_no"));
-						paymentDTO.setActiveFlag(resultSet.getInt("active_flag"));
-						paymentDTOList.add(paymentDTO);
-					}
-
+		List<PaymentDTO> paymentDTOList = new ArrayList<>();
+		String query = "select p.id, p.code, p.billing_id, p.amount, p.payment_mode, p.payment_datetime, p.transaction_ref_no, p.active_flag from payment p inner join billing b on p.billing_id = b.id where b.namespace_id =? and p.active_flag<2";
+		try (Connection connection = DbUtill.getConnection(); PreparedStatement preparedStatement = connection.prepareStatement(query);) {
+			preparedStatement.setInt(1, namespaceId);
+			try (ResultSet resultSet = preparedStatement.executeQuery();) {
+				if (resultSet.next()) {
+					PaymentDTO paymentDTO = new PaymentDTO();
+					paymentDTO.setId(resultSet.getInt("id"));
+					paymentDTO.setCode(resultSet.getString("code"));
+					paymentDTO.setBillingDTO(billingDAO.getById(resultSet.getInt("billing_id")));
+					paymentDTO.setAmount(resultSet.getBigDecimal("amount"));
+					paymentDTO.setPaymentMode(PaymentModeEM.getByValue(resultSet.getInt("payment_mode")));
+					paymentDTO.setPaymentDatetime(resultSet.getTimestamp("payment_datetime").toLocalDateTime());
+					paymentDTO.setTransactionRefNumber(resultSet.getString("transaction_ref_no"));
+					paymentDTO.setActiveFlag(resultSet.getInt("active_flag"));
+					paymentDTOList.add(paymentDTO);
 				}
 
 			}
-			catch (Exception e) {
-				throw new ServiceException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-			}
-			return paymentDTOList;
+
 		}
+		catch (Exception e) {
+			throw new ServiceException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return paymentDTOList;
+	}
 }

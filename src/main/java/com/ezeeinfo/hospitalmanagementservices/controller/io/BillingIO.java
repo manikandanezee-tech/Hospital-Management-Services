@@ -10,8 +10,8 @@ public class BillingIO {
 
 	private String code;
 	private NamespaceIO namespaceIO;
-	private BigDecimal totalAmount;
 	private AppointmentResponseIO appointmentResponseIO;
+	private BigDecimal totalAmount;
 	private BigDecimal paidAmount;
 	private BigDecimal balanceAmount;
 	private String billStatus;

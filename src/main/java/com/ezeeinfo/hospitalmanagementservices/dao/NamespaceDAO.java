@@ -81,7 +81,7 @@ public class NamespaceDAO {
 			throw new ServiceException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
-		throw new ServiceException("Invalid namespace code", HttpStatus.NOT_FOUND);
+		throw new ServiceException("Namespace NotFound", HttpStatus.NOT_FOUND);
 	}
 
 	public List<NamespaceDTO> getAll() {
